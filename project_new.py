@@ -81,7 +81,12 @@ genre_pairs_avg_rating = genre_pairs_df.groupby(['genre_1', 'genre_2'])['avg_rat
 G = nx.Graph()
 
 # 向图中添加节点和边
+genre_df = pd.read_csv('Genre_and_Genre_ID_Mapping.csv')  # Assuming you have a CSV with genre IDs and names
+# Create a dictionary to map genre IDs to genre names
+genre_dict = pd.Series(genre_df['Genre'].values, index=genre_df['GenreID']).to_dict()
 for _, row in genre_pairs_avg_rating.iterrows():
+    row['genre_1'] = genre_dict[row['genre_1']]
+    row['genre_2'] = genre_dict[row['genre_2']]
     G.add_edge(row['genre_1'], row['genre_2'], weight=row['avg_rating'])
 
 # 绘制图形
