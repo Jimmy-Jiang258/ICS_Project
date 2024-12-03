@@ -96,26 +96,26 @@ plt.show()
 
 
 # 提取类型组合及其平均评分
-# def get_genre_combinations(genres):
-#     return list(combinations(genres, 2))
+def get_genre_combinations(genres):
+    return list(combinations(genres, 2))
 
-# # 转换 'Genres' 列为列表（假设是字符串表示的列表）
-# df['Genres'] = df['Genres'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
+# 转换 'Genres' 列为列表（假设是字符串表示的列表）
+df['Genres'] = df['Genres'].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
 
-# # 提取每部电影的类型组合
-# genre_combinations = []
-# for genres in df['Genres']:
-#     genre_combinations.extend(get_genre_combinations(genres))
+# 提取每部电影的类型组合
+genre_combinations = []
+for genres in df['Genres']:
+    genre_combinations.extend(get_genre_combinations(genres))
 
-# # 创建组合 DataFrame
-# comb_df = pd.DataFrame(genre_combinations, columns=['Genre1', 'Genre2'])
-# comb_df['average_rating'] = comb_df.apply(
-#     lambda row: df[df['Genres'].apply(lambda x: row['Genre1'] in x and row['Genre2'] in x)]['vote_average'].mean(),
-#     axis=1
-# )
+# 创建组合 DataFrame
+comb_df = pd.DataFrame(genre_combinations, columns=['Genre1', 'Genre2'])
+comb_df['average_rating'] = comb_df.apply(
+    lambda row: df[df['Genres'].apply(lambda x: row['Genre1'] in x and row['Genre2'] in x)]['vote_average'].mean(),
+    axis=1
+)
 
-# # 去重并重设索引
-# comb_df = comb_df.drop_duplicates().reset_index(drop=True)
+# 去重并重设索引
+comb_df = comb_df.drop_duplicates().reset_index(drop=True)
 
 #新代码------------------------------------------------------------------------------------------------------------------------------
 # type_combinations = []
@@ -145,27 +145,27 @@ plt.show()
 # # -----------------------------------------------------------------------------------
 
 
-# # 创建网状图
-# G = nx.Graph()
+# 创建网状图
+G = nx.Graph()
 
-# # 添加边及其权重（平均评分）
-# for _, row in filtered_combinations.iterrows():
-#     if not pd.isna(row['average_rating']):
-#         G.add_edge(row['Genre1'], row['Genre2'], weight=row['average_rating'])
+# 添加边及其权重（平均评分）
+for _, row in comb_df.iterrows():
+    if not pd.isna(row['average_rating']):
+        G.add_edge(row['Genre1'], row['Genre2'], weight=row['average_rating'])
 
-# # 绘制网状图
-# plt.figure(figsize=(12, 10))
-# pos = nx.spring_layout(G, seed=42)  # 定义布局
-# nx.draw_networkx_nodes(G, pos, node_size=5000, node_color='skyblue')
-# nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
-# nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
+# 绘制网状图
+plt.figure(figsize=(12, 10))
+pos = nx.spring_layout(G, seed=42)  # 定义布局
+nx.draw_networkx_nodes(G, pos, node_size=5000, node_color='skyblue')
+nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.5)
+nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
 
-# # 添加边标签显示平均评分
-# edge_labels = nx.get_edge_attributes(G, 'weight')
-# nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+# 添加边标签显示平均评分
+edge_labels = nx.get_edge_attributes(G, 'weight')
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
 # plt.title(f"Genre Combination Network (Avg Rating > {rating_threshold})", fontsize=16)
-# plt.title('Genre Combination Network')
-# plt.show()
+plt.title('Genre Combination Network')
+plt.show()
 
 
 def recommend_movies(n=10):
