@@ -5,6 +5,7 @@ import seaborn as sns
 import networkx as nx
 from itertools import combinations
 import ast
+from difflib import get_close_matches
 
 # 1. 加载数据集
 file_path = 'top_rated_9000_movies_on_TMDB.csv'
@@ -185,56 +186,56 @@ plt.show()
 # plt.show()
 
 # -----------------------------------------------------------------------------------
-def get_genre_combinations(genre_ids):
-    # 获取类型的所有可能组合（不考虑顺序）
-    return list(combinations(sorted(genre_ids), 2))  # 可以设置组合大小为2
+# def get_genre_combinations(genre_ids):
+#     # 获取类型的所有可能组合（不考虑顺序）
+#     return list(combinations(sorted(genre_ids), 2))  # 可以设置组合大小为2
 
-# 获取所有电影的类型组合
-genre_combinations = df['genre_ids'].apply(get_genre_combinations)
+# # 获取所有电影的类型组合
+# genre_combinations = df['genre_ids'].apply(get_genre_combinations)
 
-# 展开所有电影的类型组合
-genre_pairs = [pair for sublist in genre_combinations for pair in sublist]
+# # 展开所有电影的类型组合
+# genre_pairs = [pair for sublist in genre_combinations for pair in sublist]
 
-# 创建一个DataFrame来保存每对类型组合的评分
-genre_pairs_df = pd.DataFrame(genre_pairs, columns=['genre_1', 'genre_2'])
+# # 创建一个DataFrame来保存每对类型组合的评分
+# genre_pairs_df = pd.DataFrame(genre_pairs, columns=['genre_1', 'genre_2'])
 
-# 合并评分信息
-genre_pairs_df['avg_rating'] = genre_pairs_df.apply(lambda row: df[(df['genre_ids'].apply(lambda x: row['genre_1'] in x and row['genre_2'] in x))]['vote_average'].mean(), axis=1)
+# # 合并评分信息
+# genre_pairs_df['avg_rating'] = genre_pairs_df.apply(lambda row: df[(df['genre_ids'].apply(lambda x: row['genre_1'] in x and row['genre_2'] in x))]['vote_average'].mean(), axis=1)
 
-# 按类型组合计算平均评分
-genre_pairs_avg_rating = genre_pairs_df.groupby(['genre_1', 'genre_2'])['avg_rating'].mean().reset_index()
+# # 按类型组合计算平均评分
+# genre_pairs_avg_rating = genre_pairs_df.groupby(['genre_1', 'genre_2'])['avg_rating'].mean().reset_index()
 
-# 绘制网状图
-G = nx.Graph()
+# # 绘制网状图
+# G = nx.Graph()
 
-# 向图中添加节点和边
-genre_df = pd.read_csv('Genre_and_Genre_ID_Mapping.csv')  # Assuming you have a CSV with genre IDs and names
-# Create a dictionary to map genre IDs to genre names
-genre_dict = pd.Series(genre_df['Genre'].values, index=genre_df['GenreID']).to_dict()
-for _, row in genre_pairs_avg_rating.iterrows():
-    row['genre_1'] = genre_dict[row['genre_1']]
-    row['genre_2'] = genre_dict[row['genre_2']]
-    G.add_edge(row['genre_1'], row['genre_2'], weight=row['avg_rating'])
+# # 向图中添加节点和边
+# genre_df = pd.read_csv('Genre_and_Genre_ID_Mapping.csv')  # Assuming you have a CSV with genre IDs and names
+# # Create a dictionary to map genre IDs to genre names
+# genre_dict = pd.Series(genre_df['Genre'].values, index=genre_df['GenreID']).to_dict()
+# for _, row in genre_pairs_avg_rating.iterrows():
+#     row['genre_1'] = genre_dict[row['genre_1']]
+#     row['genre_2'] = genre_dict[row['genre_2']]
+#     G.add_edge(row['genre_1'], row['genre_2'], weight=row['avg_rating'])
 
-# 绘制图形
-plt.figure(figsize=(12, 8))
-pos = nx.spring_layout(G, k=0.5, iterations=20)  # 布局
-edges = G.edges()
-weights = [G[u][v]['weight'] for u, v in edges]
+# # 绘制图形
+# plt.figure(figsize=(12, 8))
+# pos = nx.spring_layout(G, k=0.5, iterations=20)  # 布局
+# edges = G.edges()
+# weights = [G[u][v]['weight'] for u, v in edges]
 
-# 绘制边
-nx.draw_networkx_edges(G, pos, edgelist=edges, width=weights, alpha=0.6, edge_color=weights, edge_cmap=plt.cm.Blues)
+# # 绘制边
+# nx.draw_networkx_edges(G, pos, edgelist=edges, width=weights, alpha=0.6, edge_color=weights, edge_cmap=plt.cm.Blues)
 
-# 绘制节点
-nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue', alpha=0.7)
+# # 绘制节点
+# nx.draw_networkx_nodes(G, pos, node_size=500, node_color='skyblue', alpha=0.7)
 
-# 绘制标签
-nx.draw_networkx_labels(G, pos, font_size=12, font_color='black')
+# # 绘制标签
+# nx.draw_networkx_labels(G, pos, font_size=12, font_color='black')
 
-# 设置标题
-plt.title('Network of Genre Combinations and their Average Ratings')
-plt.axis('off')
-plt.show()
+# # 设置标题
+# plt.title('Network of Genre Combinations and their Average Ratings')
+# plt.axis('off')
+# plt.show()
 
 # -----------------------------------------------------------------------------------   
 
@@ -256,19 +257,37 @@ def recommend_based_on_favorites(favorite_input, n=10):
     favorite_years = [int(item) for item in favorite_input if item.isdigit()]
     favorite_titles = [item for item in favorite_input if not item.isdigit() and item not in favorite_genres]
     
+    if favorite_titles:
+        favorite_movies = df[df['title'].isin(favorite_titles)]
+        if favorite_movies.empty:
+            # Find close matches for the given titles
+            all_titles = df['title'].tolist()
+            close_matches = []
+            for title in favorite_titles:
+                matches = get_close_matches(title, all_titles, n=3, cutoff=0.6)
+                close_matches.extend(matches)
+            favorite_movies = df[df['title'].isin(close_matches)]
+        
+        if not favorite_movies.empty:
+            favorite_genres = favorite_movies.explode('genre_names')['genre_names'].unique()
+        else:
+            print("No matching movies found for the given titles.")
+            return pd.DataFrame()  # Return an empty DataFrame if no matches are found
+    
     recommended_movies = df[
         df['genre_names'].apply(lambda x: any(genre in x for genre in favorite_genres)) |
         df['release_year'].isin(favorite_years) |
-        df['title'].isin(favorite_titles)
+        (df['genre_names'].apply(lambda x: any(genre in x for genre in favorite_genres)) & 
+        ~df['title'].isin(favorite_titles))
     ]
     
     return recommended_movies.nlargest(n, 'vote_average')[['title', 'vote_average']]
 
-# Example usage
-
-# Convert 'genre_ids' to 'genre_names'
 df['genre_names'] = df['genre_ids'].apply(lambda x: [genre_dict.get(int(genre_id), 'Unknown') for genre_id in ast.literal_eval(x)])
 
 # Example usage
-print(recommend_based_on_favorites(favorite_input, 10))
+recommended_movies = recommend_based_on_favorites(favorite_input, 10)
+if not recommended_movies.empty:
+    print(recommended_movies)
+
 print(recommend_movies(10))
