@@ -58,11 +58,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>电影推荐系统</h1>
+        <h1>Movie Recommendation System        </h1>
         <form id="recommendationForm">
-            <label for="favorites">输入你喜欢的电影、类型或年份（用逗号分隔）:</label>
+            <label for="favorites">Enter your favorite movie, genre, or year (separated by commas):</label>
             <input type="text" id="favorites" name="favorites" required>
-            <input type="submit" value="获取推荐">
+            <input type="submit" value="Get recommendations">
         </form>
         <div class="results" id="results"></div>
     </div>
@@ -86,7 +86,7 @@
                     data.forEach(movie => {
                         const movieDiv = document.createElement('div');
                         movieDiv.classList.add('movie');
-                        movieDiv.innerHTML = `<strong>${movie.title}</strong> - 评分: ${movie.vote_average}`;
+                        movieDiv.innerHTML = `<strong>${movie.title}</strong> - average rating: ${movie.vote_average}`;
                         const overviewDiv = document.createElement('div');
                         overviewDiv.classList.add('overview');
                         overviewDiv.innerText = movie.overview;
@@ -97,7 +97,7 @@
                         resultsDiv.appendChild(movieDiv);
                     });
                 } else {
-                    resultsDiv.innerHTML = '没有找到推荐的电影。';
+                    resultsDiv.innerHTML = 'No recommended movies found.';
                 }
             })
             .catch(error => console.error('Error:', error));
