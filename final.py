@@ -49,7 +49,24 @@ plt.xlabel('Genre')
 plt.ylabel('Average Rating')
 plt.xticks(rotation=90)
 plt.show()
+# 绘制类型评分的箱型图
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df.explode('Genres'), x='Genres', y='vote_average')
+plt.title('Boxplot of Ratings by Genre')
+plt.xlabel('Genre')
+plt.ylabel('Average Rating')
+plt.xticks(rotation=90)
+plt.show()
 
+# -----------------------------------------------------------------------------------
+# plt.figure(figsize=(12, 6))
+# sns.boxplot(x=genre_ratings.index, y=genre_ratings.values)
+# plt.title('Average Rating by Genre')
+# plt.xlabel('Genre')
+# plt.ylabel('Average Rating')
+# plt.xticks(rotation=90)
+# plt.show()
+# -----------------------------------------------------------------------------------
 # 绘制类型与流行度的关系
 plt.figure(figsize=(12, 6))
 sns.barplot(x=genre_popularity.index, y=genre_popularity.values)
