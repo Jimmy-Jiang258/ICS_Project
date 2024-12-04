@@ -14,7 +14,7 @@ df['release_year'] = pd.to_datetime(df['release_date']).dt.year
 genre_dict = pd.Series(genre_df['Genre'].values, index=genre_df['GenreID']).to_dict()
 df['genre_names'] = df['genre_ids'].apply(lambda x: [genre_dict.get(int(genre_id), 'Unknown') for genre_id in ast.literal_eval(x)])
 
-def recommend_based_on_favorites(favorite_input, n=10):
+def recommend_based_on_favorites(favorite_input, n=30):
     favorite_genres = [genre for genre in favorite_input if genre in genre_dict.values()]
     favorite_years = [int(item) for item in favorite_input if item.isdigit()]
     favorite_titles = [item for item in favorite_input if not item.isdigit() and item not in favorite_genres]
